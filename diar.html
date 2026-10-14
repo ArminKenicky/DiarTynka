@@ -1,0 +1,1161 @@
+<!DOCTYPE html>
+<html lang="cs">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Můj Diář - Týdenní Plánovač</title>
+    <style>
+        :root {
+            --desk-bg: #14110f;
+            --cover-leather: #2b1b17;
+            --cover-border: #4d3326;
+            --paper-bg: #fcf9f2;
+            --paper-line: #dcd4c7;
+            --paper-subline: #ece5d8;
+            --text-dark: #221c17;
+            --text-muted: #73675a;
+            --text-red: #aa2e2e;
+            --accent-gold: #b88d3e;
+            --event-bg: #eaddca;
+            --event-border: #8b6f4e;
+            --event-text: #2a1f14;
+            --holiday-bg: #fae1e1;
+            --holiday-border: #cc6d6d;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Georgia', 'Garamond', 'Palatino', serif;
+        }
+
+        body {
+            background-color: var(--desk-bg);
+            background-image: 
+                radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, #100d0b, #191412);
+            background-size: 24px 24px, 100% 100%;
+            color: var(--text-dark);
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* Top Navigation Bar */
+        .top-nav {
+            width: 100%;
+            max-width: 1280px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: #231b16;
+            padding: 12px 22px;
+            border-radius: 8px 8px 0 0;
+            border: 1px solid #3d2f26;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            color: #e6dfd5;
+        }
+
+        .nav-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: #382c23;
+            color: #f0e8dd;
+            border: 1px solid #544235;
+            padding: 7px 16px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            font-weight: bold;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent-gold);
+            color: #fff;
+            border-color: var(--accent-gold);
+        }
+
+        .nav-select {
+            background: #382c23;
+            color: #f0e8dd;
+            border: 1px solid #544235;
+            padding: 7px 12px;
+            border-radius: 5px;
+            font-size: 0.95rem;
+            cursor: pointer;
+            outline: none;
+        }
+
+        /* Outer Book Leather Cover Wrapper */
+        .notebook-cover {
+            width: 100%;
+            max-width: 1280px;
+            background: linear-gradient(135deg, #36221c 0%, #20130f 50%, #170d0a 100%);
+            padding: 18px 20px;
+            border-radius: 0 0 16px 16px;
+            box-shadow: 
+                0 30px 60px rgba(0, 0, 0, 0.85),
+                inset 0 0 0 2px rgba(255, 255, 255, 0.05),
+                inset 0 0 15px rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--cover-border);
+            position: relative;
+        }
+
+        /* Decorative leather stitching line */
+        .notebook-cover::before {
+            content: '';
+            position: absolute;
+            top: 8px; left: 8px; right: 8px; bottom: 8px;
+            border: 1.5px dashed #593e2e;
+            border-radius: 12px;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+
+        /* Paper Spread */
+        .book-spread {
+            width: 100%;
+            background-color: var(--paper-bg);
+            border-radius: 6px;
+            box-shadow: 
+                0 10px 30px rgba(0, 0, 0, 0.5),
+                inset 0 0 80px rgba(184, 150, 110, 0.12);
+            border: 1px solid #c8bcab;
+            display: flex;
+            position: relative;
+            min-height: 840px;
+            overflow: hidden;
+        }
+
+        /* Central spine shadow crease effect */
+        .book-spread::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            width: 36px;
+            transform: translateX(-50%);
+            background: linear-gradient(to right, 
+                rgba(0,0,0,0.22) 0%, 
+                rgba(0,0,0,0.06) 38%, 
+                rgba(0,0,0,0.28) 50%, 
+                rgba(0,0,0,0.06) 62%, 
+                rgba(0,0,0,0.22) 100%);
+            pointer-events: none;
+            z-index: 15;
+        }
+
+        /* Ring Binder Overlay Mechanism */
+        .ring-binder {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            z-index: 30;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-evenly;
+            align-items: center;
+            pointer-events: none;
+        }
+
+        .ring-unit {
+            width: 100%;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: relative;
+            height: 18px;
+        }
+
+        /* Paper Hole Punches */
+        .hole-punch {
+            width: 12px;
+            height: 12px;
+            background: radial-gradient(circle, #231812 40%, #120b08 100%);
+            border-radius: 50%;
+            box-shadow: 
+                inset 0 1px 3px rgba(0,0,0,0.9),
+                0 0 2px rgba(255,255,255,0.4);
+            position: absolute;
+            top: 3px;
+        }
+
+        .hole-left { left: 4px; }
+        .hole-right { right: 4px; }
+
+        /* Metallic Ring Loop */
+        .metal-ring {
+            position: absolute;
+            left: 2px;
+            right: 2px;
+            height: 16px;
+            border-radius: 10px;
+            background: linear-gradient(to bottom, 
+                #f0f0f0 0%, 
+                #b0b0b0 25%, 
+                #555555 50%, 
+                #d8d8d8 75%, 
+                #777777 100%);
+            box-shadow: 
+                0 4px 6px rgba(0, 0, 0, 0.5),
+                inset 0 1px 2px rgba(255, 255, 255, 0.9);
+            z-index: 32;
+        }
+
+        .book-page {
+            flex: 1;
+            padding: 22px 28px 18px 28px;
+            display: flex;
+            flex-direction: column;
+            width: 50%;
+            position: relative;
+        }
+
+        .left-page {
+            border-right: 1px solid #d3c7b5;
+            padding-right: 32px;
+        }
+
+        .right-page {
+            border-left: 1px solid #e2d7c5;
+            padding-left: 32px;
+        }
+
+        /* Page Headers */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 2px solid var(--text-dark);
+            padding-bottom: 4px;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .week-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .year-title {
+            font-size: 1rem;
+            font-weight: bold;
+            color: var(--text-muted);
+        }
+
+        .month-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .days-columns-container {
+            display: flex;
+            flex-grow: 1;
+            gap: 12px;
+        }
+
+        .day-column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--paper-line);
+            padding-right: 8px;
+        }
+
+        .day-column:last-child {
+            border-right: none;
+            padding-right: 0;
+        }
+
+        /* Day Header Info */
+        .day-header-box {
+            border-bottom: 1.5px solid var(--text-dark);
+            padding-bottom: 6px;
+            margin-bottom: 8px;
+            min-height: 62px;
+        }
+
+        .day-header-top {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+
+        .day-number-big {
+            font-size: 2rem;
+            font-weight: bold;
+            line-height: 1;
+            color: var(--text-dark);
+        }
+
+        .day-column.today .day-number-big {
+            color: var(--text-red);
+        }
+
+        .day-name-title {
+            font-size: 0.95rem;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+
+        .day-counts {
+            font-size: 0.68rem;
+            color: var(--text-muted);
+            margin-top: 2px;
+            font-family: sans-serif;
+        }
+
+        .day-nameday {
+            font-size: 0.76rem;
+            font-style: italic;
+            color: var(--text-muted);
+            margin-top: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Hourly Schedule Grid */
+        .hourly-schedule {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+        }
+
+        .time-slot {
+            height: 30px;
+            border-bottom: 1px solid var(--paper-line);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding: 1px 2px;
+            cursor: pointer;
+            transition: background-color 0.15s;
+        }
+
+        .time-slot:hover {
+            background-color: rgba(184, 150, 110, 0.14);
+        }
+
+        /* Half-hour inner dashed line */
+        .time-slot::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 28px;
+            right: 0;
+            border-bottom: 1px dotted var(--paper-subline);
+            pointer-events: none;
+        }
+
+        .time-label {
+            font-size: 0.65rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            font-family: sans-serif;
+            width: 26px;
+            user-select: none;
+        }
+
+        .time-sublabel {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            font-size: 0.55rem;
+            color: #a09586;
+            font-family: sans-serif;
+            user-select: none;
+        }
+
+        .slot-events-container {
+            position: absolute;
+            left: 28px;
+            right: 2px;
+            top: 1px;
+            bottom: 1px;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            overflow: hidden;
+            z-index: 5;
+        }
+
+        .event-badge {
+            background-color: var(--event-bg);
+            color: var(--event-text);
+            border: 1px solid var(--event-border);
+            border-left: 3px solid var(--event-border);
+            border-radius: 3px;
+            font-size: 0.72rem;
+            font-family: 'Segoe UI', system-ui, sans-serif;
+            padding: 1px 4px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .event-badge:hover {
+            transform: scale(1.02);
+        }
+
+        .event-badge.holiday {
+            background-color: var(--holiday-bg);
+            border-color: var(--holiday-border);
+            border-left-color: var(--text-red);
+            color: var(--text-red);
+        }
+
+        /* Bottom notes section */
+        .notes-section {
+            margin-top: 8px;
+            border-top: 1.5px solid var(--text-dark);
+            padding-top: 4px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .notes-title {
+            font-size: 0.72rem;
+            font-weight: bold;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            margin-bottom: 3px;
+        }
+
+        .notes-textarea {
+            width: 100%;
+            height: 60px;
+            background-color: transparent;
+            background-image: repeating-linear-gradient(transparent, transparent 18px, var(--paper-line) 18px, var(--paper-line) 19px);
+            border: none;
+            outline: none;
+            resize: none;
+            font-family: 'Georgia', 'Garamond', 'Palatino', serif;
+            font-size: 0.85rem;
+            line-height: 19px;
+            color: var(--text-dark);
+            padding: 0 4px;
+            box-sizing: border-box;
+        }
+
+        .notes-textarea:focus {
+            background-color: rgba(184, 150, 110, 0.08);
+        }
+
+        /* Modal Popup */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(15, 12, 9, 0.75);
+            backdrop-filter: blur(3px);
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background-color: var(--paper-bg);
+            padding: 24px;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 440px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.6);
+            border: 2px solid var(--accent-gold);
+        }
+
+        .modal h3 {
+            margin-bottom: 18px;
+            font-size: 1.25rem;
+            color: var(--text-dark);
+            border-bottom: 1px dashed #c4b8a5;
+            padding-bottom: 8px;
+        }
+
+        .modal-field {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 14px;
+        }
+
+        .modal-field label {
+            font-size: 0.82rem;
+            color: var(--text-muted);
+            font-weight: bold;
+            font-family: sans-serif;
+        }
+
+        .modal input, .modal textarea {
+            width: 100%;
+            padding: 9px 12px;
+            background-color: #fff;
+            border: 1px solid #c4b8a5;
+            color: var(--text-dark);
+            border-radius: 4px;
+            font-size: 0.95rem;
+            font-family: sans-serif;
+            outline: none;
+        }
+
+        .modal input:focus, .modal textarea:focus {
+            border-color: var(--accent-gold);
+        }
+
+        .modal textarea {
+            resize: vertical;
+            min-height: 70px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 20px;
+            font-family: sans-serif;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.88rem;
+        }
+
+        .btn-cancel { background-color: #d8cbb8; color: #2a221c; }
+        .btn-cancel:hover { background-color: #c5b6a1; }
+        .btn-save { background-color: var(--accent-gold); color: #fff; }
+        .btn-save:hover { background-color: #9e7934; }
+        .btn-delete { background-color: var(--text-red); color: #fff; margin-right: auto; }
+        .btn-delete:hover { background-color: #821f1f; }
+
+        /* Mobile Adjustments */
+        @media (max-width: 900px) {
+            .ring-binder { display: none; }
+            .notebook-cover { padding: 10px; }
+            .book-spread {
+                flex-direction: column;
+                min-height: auto;
+            }
+            .book-page {
+                width: 100%;
+                border: none !important;
+                padding: 15px;
+            }
+            .book-spread::after { display: none; }
+            .days-columns-container { flex-direction: column; }
+            .day-column {
+                border-right: none;
+                border-bottom: 1.5px solid var(--paper-line);
+                padding-bottom: 15px;
+                margin-bottom: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Top Navigation Bar -->
+    <div class="top-nav">
+        <div class="nav-group">
+            <button class="nav-btn" id="btnPrevWeek" title="Předchozí týden">&lt; Předchozí týden</button>
+            <button class="nav-btn" id="btnToday">Dnes</button>
+            <button class="nav-btn" id="btnNextWeek" title="Následující týden">Následující týden &gt;</button>
+        </div>
+        
+        <div class="nav-group">
+            <select id="weekSelect" class="nav-select"></select>
+            <select id="monthSelect" class="nav-select"></select>
+            <select id="yearSelect" class="nav-select"></select>
+        </div>
+    </div>
+
+    <!-- Leather Notebook Outer Cover -->
+    <div class="notebook-cover">
+        <div class="book-spread">
+            
+            <!-- Metallic Ring Binder Spine Clips -->
+            <div class="ring-binder">
+                <div class="ring-unit"><div class="hole-punch hole-left"></div><div class="metal-ring"></div><div class="hole-punch hole-right"></div></div>
+                <div class="ring-unit"><div class="hole-punch hole-left"></div><div class="metal-ring"></div><div class="hole-punch hole-right"></div></div>
+                <div class="ring-unit"><div class="hole-punch hole-left"></div><div class="metal-ring"></div><div class="hole-punch hole-right"></div></div>
+                <div class="ring-unit"><div class="hole-punch hole-left"></div><div class="metal-ring"></div><div class="hole-punch hole-right"></div></div>
+                <div class="ring-unit"><div class="hole-punch hole-left"></div><div class="metal-ring"></div><div class="hole-punch hole-right"></div></div>
+                <div class="ring-unit"><div class="hole-punch hole-left"></div><div class="metal-ring"></div><div class="hole-punch hole-right"></div></div>
+                <div class="ring-unit"><div class="hole-punch hole-left"></div><div class="metal-ring"></div><div class="hole-punch hole-right"></div></div>
+                <div class="ring-unit"><div class="hole-punch hole-left"></div><div class="metal-ring"></div><div class="hole-punch hole-right"></div></div>
+                <div class="ring-unit"><div class="hole-punch hole-left"></div><div class="metal-ring"></div><div class="hole-punch hole-right"></div></div>
+            </div>
+
+            <!-- LEFT PAGE: Mon, Tue, Wed -->
+            <div class="book-page left-page">
+                <div class="page-header">
+                    <span class="week-title" id="leftWeekTitle">1. TÝDEN</span>
+                    <span class="year-title" id="leftYearTitle">2026</span>
+                </div>
+                
+                <div class="days-columns-container" id="leftDaysContainer">
+                    <!-- Days 1-3 (Mon-Wed) dynamically populated here -->
+                </div>
+
+                <div class="notes-section">
+                    <div class="notes-title">Poznámky / Notes (L)</div>
+                    <textarea class="notes-textarea" id="leftNotesTextarea" placeholder="Pondělní - Středeční poznámky..."></textarea>
+                </div>
+            </div>
+
+            <!-- RIGHT PAGE: Thu, Fri, Sat/Sun -->
+            <div class="book-page right-page">
+                <div class="page-header">
+                    <span class="month-title" id="rightMonthTitle">LEDEN</span>
+                </div>
+                
+                <div class="days-columns-container" id="rightDaysContainer">
+                    <!-- Days 4-7 (Thu-Sun) dynamically populated here -->
+                </div>
+
+                <div class="notes-section">
+                    <div class="notes-title">Poznámky / Notes (P)</div>
+                    <textarea class="notes-textarea" id="notesTextarea" placeholder="Čtvrteční - Nedělní poznámky..."></textarea>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div class="modal-overlay" id="eventModal">
+        <div class="modal">
+            <h3 id="modalDateTitle">Přidat aktivitu</h3>
+            
+            <div class="modal-field">
+                <label for="eventTimeInput">Čas aktivity</label>
+                <input type="time" id="eventTimeInput" value="08:00">
+            </div>
+
+            <div class="modal-field">
+                <label for="eventTitleInput">Název aktivity *</label>
+                <input type="text" id="eventTitleInput" placeholder="Např. Schůzka, Zkouška..." autocomplete="off">
+            </div>
+
+            <div class="modal-field">
+                <label for="eventDescInput">Popis / Poznámka</label>
+                <textarea id="eventDescInput" placeholder="Detailnější popis, místo, poznámky..."></textarea>
+            </div>
+
+            <div class="modal-buttons">
+                <button class="btn btn-delete" id="btnDelete" style="display: none;">Smazat</button>
+                <button class="btn btn-cancel" id="btnCancel">Zrušit</button>
+                <button class="btn btn-save" id="btnSave">Uložit</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // UI elements
+            const leftDaysContainer = document.getElementById('leftDaysContainer');
+            const rightDaysContainer = document.getElementById('rightDaysContainer');
+            const leftWeekTitle = document.getElementById('leftWeekTitle');
+            const leftYearTitle = document.getElementById('leftYearTitle');
+            const rightMonthTitle = document.getElementById('rightMonthTitle');
+            const notesTextarea = document.getElementById('notesTextarea');
+            const leftNotesTextarea = document.getElementById('leftNotesTextarea');
+            
+            const btnPrevWeek = document.getElementById('btnPrevWeek');
+            const btnNextWeek = document.getElementById('btnNextWeek');
+            const btnToday = document.getElementById('btnToday');
+            const weekSelect = document.getElementById('weekSelect');
+            const monthSelect = document.getElementById('monthSelect');
+            const yearSelect = document.getElementById('yearSelect');
+
+            const modal = document.getElementById('eventModal');
+            const btnCancel = document.getElementById('btnCancel');
+            const btnDelete = document.getElementById('btnDelete');
+            const btnSave = document.getElementById('btnSave');
+            const eventTimeInput = document.getElementById('eventTimeInput');
+            const eventTitleInput = document.getElementById('eventTitleInput');
+            const eventDescInput = document.getElementById('eventDescInput');
+            const modalDateTitle = document.getElementById('modalDateTitle');
+
+            // Application State
+            let currentDate = new Date();
+            let activeMonday = getMonday(currentDate);
+            let selectedDateString = null;
+            let editEventIndex = null;
+
+            const STORAGE_KEY = 'my_diary_events_data_v2';
+
+            // Czech Name Days Dictionary
+            const czechNameDays = {
+                "01-01": "Nový rok", "01-02": "Karina", "01-03": "Radmila", "01-04": "Diana", "01-05": "Dalimil", "01-06": "Tři králové", "01-07": "Vilma", "01-08": "Čestmír", "01-09": "Vladan", "01-10": "Břetislav", "01-11": "Bohdana", "01-12": "Pravoslav", "01-13": "Edita", "01-14": "Radovan", "01-15": "Alice", "01-16": "Ctirad", "01-17": "Drahoslav", "01-18": "Vladislav", "01-19": "Doubravka", "01-20": "Ilona", "01-21": "Běla", "01-22": "Slavomír", "01-23": "Zdeněk", "01-24": "Milena", "01-25": "Miloš", "01-26": "Zora", "01-27": "Ingrid", "01-28": "Otýlie", "01-29": "Zdislava", "01-30": "Robin", "01-31": "Marika",
+                "02-01": "Hynek", "02-02": "Nela", "02-03": "Blažej", "02-04": "Jarmila", "02-05": "Dobromila", "02-06": "Vanda", "02-07": "Veronika", "02-08": "Milada", "02-09": "Apolena", "02-10": "Mojmír", "02-11": "Božena", "02-12": "Slavěna", "02-13": "Věnceslav", "02-14": "Valentýn", "02-15": "Jiřina", "02-16": "Ljuba", "02-17": "Miloslav", "02-18": "Gizela", "02-19": "Patrik", "02-20": "Oldřich", "02-21": "Lenka", "02-22": "Petr", "02-23": "Svatopluk", "02-24": "Matěj", "02-25": "Liliana", "02-26": "Dorota", "02-27": "Alexandr", "02-28": "Lumír", "02-29": "Horymír",
+                "03-01": "Bedřich", "03-02": "Anežka", "03-03": "Kamil", "03-04": "Stela", "03-05": "Kazimír", "03-06": "Miroslav", "03-07": "Tomáš", "03-08": "Gabriela", "03-09": "Františka", "03-10": "Viktorie", "03-11": "Anděla", "03-12": "Řehoř", "03-13": "Růžena", "03-14": "Rút, Ida", "03-15": "Elena", "03-16": "Vlastimil", "03-17": "Eduard", "03-18": "Josef", "03-19": "Josef", "03-20": "Světlana", "03-21": "Radek", "03-22": "Leona", "03-23": "Ivona", "03-24": "Gabriel", "03-25": "Marián", "03-26": "Emanuela", "03-27": "Dita", "03-28": "Soňa", "03-29": "Tatána", "03-30": "Arnošt", "03-31": "Kvido",
+                "04-01": "Hugo", "04-02": "Erika", "04-03": "Richard", "04-04": "Ivana", "04-05": "Miroslava", "04-06": "Vendula", "04-07": "Heřman", "04-08": "Ema", "04-09": "Dušan", "04-10": "Darja", "04-11": "Izabela", "04-12": "Julius", "04-13": "Aleš", "04-14": "Vincenc", "04-15": "Anastázie", "04-16": "Irena", "04-17": "Rudolf", "04-18": "Valérie", "04-19": "Rostislav", "04-20": "Marcela", "04-21": "Alexandra", "04-22": "Evženie", "04-23": "Vojtěch", "04-24": "Jiří", "04-25": "Marek", "04-26": "Ota", "04-27": "Jaroslav", "04-28": "Vlastislav", "04-29": "Robert", "04-30": "Blahoslav",
+                "05-01": "Svátek práce", "05-02": "Zikmund", "05-03": "Alexej", "05-04": "Květoslav", "05-05": "Klaudie", "05-06": "Radoslav", "05-07": "Stanislav", "05-08": "Den vítězství", "05-09": "Ctibor", "05-10": "Blažena", "05-11": "Svatava", "05-12": "Pankrác", "05-13": "Servác", "05-14": "Bonifác", "05-15": "Žofie", "05-16": "Přemysl", "05-17": "Aneta", "05-18": "Nataša", "05-19": "Ivo", "05-20": "Zbyšek", "05-21": "Monika", "05-22": "Emil", "05-23": "Vladimír", "05-24": "Jana", "05-25": "Viola", "05-26": "Filip", "05-27": "Valdemar", "05-28": "Vilém", "05-29": "Maxmilián", "05-30": "Ferdinand", "05-31": "Kamila",
+                "06-01": "Laura", "06-02": "Jarmil", "06-03": "Tamara", "06-04": "Dalibor", "06-05": "Dobroslav", "06-06": "Norbert", "06-07": "Iveta", "06-08": "Medard", "06-09": "Stanislava", "06-10": "Gita", "06-11": "Bruno", "06-12": "Antonie", "06-13": "Antonín", "06-14": "Roland", "06-15": "Vít", "06-16": "Zbyněk", "06-17": "Adolf", "06-18": "Milan", "06-19": "Leoš", "06-20": "Květa", "06-21": "Alois", "06-22": "Pavla", "06-23": "Zdeňka", "06-24": "Jan", "06-25": "Ivan", "06-26": "Adriana", "06-27": "Ladislav", "06-28": "Lubomír", "06-29": "Petr a Pavel", "06-30": "Šárka",
+                "07-01": "Jaroslava", "07-02": "Patricie", "07-03": "Radomír", "07-04": "Prokop", "07-05": "Cyril a Metoděj", "07-06": "Jan Hus", "07-07": "Bohuslava", "07-08": "Nora", "07-09": "Drahoslava", "07-10": "Libuše", "07-11": "Olga", "07-12": "Bořek", "07-13": "Markéta", "07-14": "Karolína", "07-15": "Jindřich", "07-16": "Luboš", "07-17": "Martina", "07-18": "Drahomíra", "07-19": "Čeněk", "07-20": "Ilija", "07-21": "Vítězslav", "07-22": "Magdaléna", "07-23": "Libor", "07-24": "Kristýna", "07-25": "Jakub", "07-26": "Anna", "07-27": "Věroslav", "07-28": "Viktor", "07-29": "Marta", "07-30": "Bořivoj", "07-31": "Ignác",
+                "08-01": "Oskar", "08-02": "Gustav", "08-03": "Miluše", "08-04": "Dominik", "08-05": "Kristián", "08-06": "Oldřiška", "08-07": "Lada", "08-08": "Soběslav", "08-09": "Roman", "08-10": "Vavřinec", "08-11": "Zuzana", "08-12": "Klára", "08-13": "Alena", "08-14": "Alan", "08-15": "Hana", "08-16": "Jáchym", "08-17": "Petra", "08-18": "Helena", "08-19": "Ludvík", "08-20": "Bernard", "08-21": "Johana", "08-22": "Bohuslav", "08-23": "Sandra", "08-24": "Bartoloměj", "08-25": "Radim", "08-26": "Luděk", "08-27": "Otakar", "08-28": "Augustýn", "08-29": "Evelína", "08-30": "Vladěna", "08-31": "Pavlína",
+                "09-01": "Linda, Samuel", "09-02": "Adéla", "09-03": "Bronislav", "09-04": "Jindřiška", "09-05": "Boris", "09-06": "Boleslav", "09-07": "Regína", "09-08": "Mariana", "09-09": "Daniela", "09-10": "Irma", "09-11": "Denisa", "09-12": "Marie", "09-13": "Lubor", "09-14": "Radka", "09-15": "Jolana", "09-16": "Ludmila", "09-17": "Nadežda", "09-18": "Kryštof", "09-19": "Zita", "09-20": "Oleg", "09-21": "Matouš", "09-22": "Darina", "09-23": "Berta", "09-24": "Jaromír", "09-25": "Zlata", "09-26": "Andrea", "09-27": "Jonáš", "09-28": "Václav", "09-29": "Michal", "09-30": "Jeroným",
+                "10-01": "Igor", "10-02": "Olívie", "10-03": "Bohumil", "10-04": "František", "10-05": "Eliška", "10-06": "Hanuš", "10-07": "Justýna", "10-08": "Věra", "10-09": "Štefan", "10-10": "Marina", "10-11": "Andrej", "10-12": "Marcel", "10-13": "Renáta", "10-14": "Agáta", "10-15": "Tereza", "10-16": "Havel", "10-17": "Hedvika", "10-18": "Lukáš", "10-19": "Michaela", "10-20": "Vendelín", "10-21": "Brigita", "10-22": "Sabina", "10-23": "Teodor", "10-24": "Nina", "10-25": "Beáta", "10-26": "Erik", "10-27": "Šarlota", "10-28": "Vznik ČSR", "10-29": "Silvie", "10-30": "Tadeáš", "10-31": "Štěpánka",
+                "11-01": "Felix", "11-02": "Památka zesnulých", "11-03": "Hubert", "11-04": "Karel", "11-05": "Miriam", "11-06": "Liběna", "11-07": "Saskie", "11-08": "Bohumír", "11-09": "Bohdan", "11-10": "Evžen", "11-11": "Martin", "11-12": "Benedikt", "11-13": "Tibor", "11-14": "Sáva", "11-15": "Leopold", "11-16": "Otmar", "11-17": "Den boje za svobodu", "11-18": "Romana", "11-19": "Alžběta", "11-20": "Nikola", "11-21": "Albert", "11-22": "Cecílie", "11-23": "Klement", "11-24": "Zina", "11-25": "Kateřina", "11-26": "Artur", "11-27": "Xenie", "11-28": "René", "11-29": "Zinaida", "11-30": "Ondřej",
+                "12-01": "Iva", "12-02": "Blanka", "12-03": "Svatoslav", "12-04": "Barbora", "12-05": "Jitka", "12-06": "Mikuláš", "12-07": "Ambrož", "12-08": "Květoslava", "12-09": "Vratislav", "12-10": "Julie", "12-11": "Dana", "12-12": "Simona", "12-13": "Lucie", "12-14": "Lýdie", "12-15": "Radana", "12-16": "Albína", "12-17": "Daniel", "12-18": "Miloslav", "12-19": "Ester", "12-20": "Dagmar", "12-21": "Natálie", "12-22": "Šimon", "12-23": "Vlasta", "12-24": "Štědrý den", "12-25": "1. svátek vánoční", "12-26": "2. svátek vánoční", "12-27": "Žaneta", "12-28": "Bohumila", "12-29": "Judita", "12-30": "David", "12-31": "Silvestr"
+            };
+
+            const dayNamesCzech = ["Neděle", "Pondělí", "Úterý", "Středa", "Čtvrtek", "Pátek", "Sobota"];
+            const monthNamesCzech = ["LEDEN", "ÚNOR", "BŘEZEN", "DUBEN", "KVĚTEN", "ČERVEN", "ČERVENEC", "SRPEN", "ZÁŘÍ", "ŘÍJEN", "LISTOPAD", "PROSINEC"];
+
+            function loadEvents() {
+                try {
+                    const stored = localStorage.getItem(STORAGE_KEY);
+                    return stored ? JSON.parse(stored) : {};
+                } catch (e) {
+                    console.error('Chyba při načítání:', e);
+                    return {};
+                }
+            }
+
+            function saveEvents() {
+                try {
+                    localStorage.setItem(STORAGE_KEY, JSON.stringify(eventsData));
+                } catch (e) {
+                    console.error('Chyba při ukládání:', e);
+                }
+            }
+
+            const eventsData = loadEvents();
+
+            // Date utility functions
+            function getMonday(d) {
+                const date = new Date(d);
+                const day = date.getDay();
+                const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+                const monday = new Date(date.setDate(diff));
+                monday.setHours(0, 0, 0, 0);
+                return monday;
+            }
+
+            function getISOWeek(d) {
+                const date = new Date(d.getTime());
+                date.setHours(0, 0, 0, 0);
+                date.setDate(date.getDate() + 3 - (date.getDay() + 6) % 7);
+                const week1 = new Date(date.getFullYear(), 0, 4);
+                return 1 + Math.round(((date.getTime() - week1.getTime()) / 86400000 - 3 + (week1.getDay() + 6) % 7) / 7);
+            }
+
+            function getDayOfYear(d) {
+                const start = new Date(d.getFullYear(), 0, 0);
+                const diff = d - start;
+                const oneDay = 1000 * 60 * 60 * 24;
+                return Math.floor(diff / oneDay);
+            }
+
+            function isLeapYear(year) {
+                return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+            }
+
+            function getEasterMonday(year) {
+                const a = year % 19;
+                const b = Math.floor(year / 100);
+                const c = year % 100;
+                const d = Math.floor(b / 4);
+                const e = b % 4;
+                const f = Math.floor((b + 8) / 25);
+                const g = Math.floor((b - f + 1) / 3);
+                const h = (19 * a + b - d - g + 15) % 30;
+                const i = Math.floor(c / 4);
+                const k = c % 4;
+                const l = (32 + 2 * e + 2 * i - h - k) % 7;
+                const m = Math.floor((a + 11 * h + 22 * l) / 451);
+                const month = Math.floor((h + l - 7 * m + 114) / 31);
+                const day = ((h + l - 7 * m + 114) % 31) + 1;
+                
+                const sunday = new Date(year, month - 1, day);
+                const monday = new Date(sunday);
+                monday.setDate(sunday.getDate() + 1);
+                return monday;
+            }
+
+            function getCzechHolidays(year) {
+                const holidays = {
+                    [`${year}-01-01`]: "Nový rok / Den obnovy ČR",
+                    [`${year}-05-01`]: "Svátek práce",
+                    [`${year}-05-08`]: "Den vítězství",
+                    [`${year}-07-05`]: "Cyril a Metoděj",
+                    [`${year}-07-06`]: "Jan Hus",
+                    [`${year}-09-28`]: "Den české státnosti",
+                    [`${year}-10-28`]: "Vznik ČSR",
+                    [`${year}-11-17`]: "Den boje za svobodu",
+                    [`${year}-12-24`]: "Štědrý den",
+                    [`${year}-12-25`]: "1. svátek vánoční",
+                    [`${year}-12-26`]: "2. svátek vánoční"
+                };
+
+                const easterMonday = getEasterMonday(year);
+                const mMonth = String(easterMonday.getMonth() + 1).padStart(2, '0');
+                const mDay = String(easterMonday.getDate()).padStart(2, '0');
+                holidays[`${year}-${mMonth}-${mDay}`] = "Velikonoční pondělí";
+
+                const goodFriday = new Date(easterMonday);
+                goodFriday.setDate(easterMonday.getDate() - 3);
+                const fMonth = String(goodFriday.getMonth() + 1).padStart(2, '0');
+                const fDay = String(goodFriday.getDate()).padStart(2, '0');
+                holidays[`${year}-${fMonth}-${fDay}`] = "Velký pátek";
+
+                return holidays;
+            }
+
+            function populateSelects() {
+                monthSelect.innerHTML = '';
+                monthNamesCzech.forEach((name, idx) => {
+                    const opt = document.createElement('option');
+                    opt.value = idx;
+                    opt.textContent = name;
+                    monthSelect.appendChild(opt);
+                });
+
+                yearSelect.innerHTML = '';
+                const startYear = new Date().getFullYear();
+                for (let y = startYear; y <= startYear + 10; y++) {
+                    const opt = document.createElement('option');
+                    opt.value = y;
+                    opt.textContent = y;
+                    yearSelect.appendChild(opt);
+                }
+            }
+
+            function updateWeekSelectForMonth() {
+                weekSelect.innerHTML = '';
+                const year = parseInt(yearSelect.value);
+                const month = parseInt(monthSelect.value);
+
+                const firstDayOfMonth = new Date(year, month, 1);
+                const lastDayOfMonth = new Date(year, month + 1, 0);
+
+                let currMon = getMonday(firstDayOfMonth);
+                let weekCountInMonth = 1;
+
+                while (currMon <= lastDayOfMonth) {
+                    const wNum = getISOWeek(currMon);
+                    const opt = document.createElement('option');
+                    opt.value = wNum;
+                    opt.textContent = `${weekCountInMonth}. týden`;
+                    weekSelect.appendChild(opt);
+
+                    currMon.setDate(currMon.getDate() + 7);
+                    weekCountInMonth++;
+                }
+
+                const currentWeekNum = getISOWeek(activeMonday);
+                if (weekSelect.querySelector(`option[value="${currentWeekNum}"]`)) {
+                    weekSelect.value = currentWeekNum;
+                } else if (weekSelect.options.length > 0) {
+                    weekSelect.selectedIndex = 0;
+                }
+            }
+
+            function renderWeek() {
+                leftDaysContainer.innerHTML = '';
+                rightDaysContainer.innerHTML = '';
+
+                const weekNum = getISOWeek(activeMonday);
+                
+                const thursday = new Date(activeMonday);
+                thursday.setDate(thursday.getDate() + 3);
+                const currentYear = thursday.getFullYear();
+                const currentMonth = thursday.getMonth();
+
+                leftWeekTitle.textContent = `${weekNum}. TÝDEN`;
+                leftYearTitle.textContent = currentYear;
+                rightMonthTitle.textContent = `${monthNamesCzech[currentMonth]} ${currentYear}`;
+
+                monthSelect.value = currentMonth;
+                yearSelect.value = currentYear;
+                updateWeekSelectForMonth();
+
+                // Load weekly notes for both pages
+                const rightWeekKey = `notes_${currentYear}_W${weekNum}`;
+                const leftWeekKey = `left_notes_${currentYear}_W${weekNum}`;
+                notesTextarea.value = eventsData[rightWeekKey] || '';
+                leftNotesTextarea.value = eventsData[leftWeekKey] || '';
+
+                const holidays = getCzechHolidays(currentYear);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                // Generate 7 days (0: Mon, 1: Tue, ..., 6: Sun)
+                for (let i = 0; i < 7; i++) {
+                    const dayDate = new Date(activeMonday);
+                    dayDate.setDate(activeMonday.getDate() + i);
+
+                    const year = dayDate.getFullYear();
+                    const monthStr = String(dayDate.getMonth() + 1).padStart(2, '0');
+                    const dayStr = String(dayDate.getDate()).padStart(2, '0');
+                    const dateKey = `${year}-${monthStr}-${dayStr}`;
+                    const monthDayKey = `${monthStr}-${dayStr}`;
+
+                    const isToday = (dayDate.getTime() === today.getTime());
+
+                    // Create Day Column
+                    const dayCol = document.createElement('div');
+                    dayCol.className = `day-column ${isToday ? 'today' : ''}`;
+
+                    // Header box
+                    const headerBox = document.createElement('div');
+                    headerBox.className = 'day-header-box';
+
+                    const dayOfYear = getDayOfYear(dayDate);
+                    const totalDaysYear = isLeapYear(year) ? 366 : 365;
+                    const daysRemaining = totalDaysYear - dayOfYear;
+
+                    const dayName = dayNamesCzech[dayDate.getDay()];
+                    const nameDayText = czechNameDays[monthDayKey] || '';
+
+                    headerBox.innerHTML = `
+                        <div class="day-header-top">
+                            <span class="day-number-big">${dayDate.getDate()}</span>
+                            <span class="day-name-title">${dayName}</span>
+                        </div>
+                        <div class="day-counts">${dayOfYear} / ${daysRemaining}</div>
+                        <div class="day-nameday">${nameDayText}</div>
+                    `;
+
+                    dayCol.appendChild(headerBox);
+
+                    // Hourly Schedule Grid (6:00 to 22:00 for all days)
+                    const scheduleDiv = document.createElement('div');
+                    scheduleDiv.className = 'hourly-schedule';
+
+                    const startHour = 6;
+                    const endHour = 22;
+
+                    for (let h = startHour; h <= endHour; h++) {
+                        const timeSlot = document.createElement('div');
+                        timeSlot.className = 'time-slot';
+
+                        const hourStr = String(h).padStart(2, '0');
+                        timeSlot.innerHTML = `
+                            <span class="time-label">${h}⁰⁰</span>
+                            <span class="time-sublabel">30</span>
+                            <div class="slot-events-container" id="slot-${dateKey}-${hourStr}"></div>
+                        `;
+
+                        // Click to add event at this specific hour
+                        timeSlot.addEventListener('click', () => {
+                            selectedDateString = dateKey;
+                            editEventIndex = null;
+                            modalDateTitle.textContent = `Aktivita: ${dayDate.getDate()}. ${monthNamesCzech[dayDate.getMonth()].toLowerCase()}`;
+                            eventTimeInput.value = `${hourStr}:00`;
+                            eventTitleInput.value = '';
+                            eventDescInput.value = '';
+                            btnDelete.style.display = 'none';
+                            modal.style.display = 'flex';
+                            eventTitleInput.focus();
+                        });
+
+                        scheduleDiv.appendChild(timeSlot);
+                    }
+
+                    dayCol.appendChild(scheduleDiv);
+
+                    // Attach to left page (Mon-Wed) or right page (Thu-Sun)
+                    if (i < 3) {
+                        leftDaysContainer.appendChild(dayCol);
+                    } else {
+                        rightDaysContainer.appendChild(dayCol);
+                    }
+
+                    // Render events into slots
+                    renderEventsForDay(dateKey, holidays);
+                }
+            }
+
+            function renderEventsForDay(dateKey, holidays) {
+                // State Holiday banner
+                if (holidays[dateKey]) {
+                    const slot08 = document.getElementById(`slot-${dateKey}-08`) || document.getElementById(`slot-${dateKey}-06`);
+                    if (slot08) {
+                        const hDiv = document.createElement('div');
+                        hDiv.className = 'event-badge holiday';
+                        hDiv.textContent = `🇨🇿 ${holidays[dateKey]}`;
+                        hDiv.title = `Státní svátek: ${holidays[dateKey]}`;
+                        slot08.appendChild(hDiv);
+                    }
+                }
+
+                if (eventsData[dateKey] && eventsData[dateKey].length > 0) {
+                    eventsData[dateKey].forEach((evt, index) => {
+                        let hourStr = "08";
+                        if (evt.time) {
+                            hourStr = evt.time.split(':')[0].padStart(2, '0');
+                        }
+
+                        const targetSlot = document.getElementById(`slot-${dateKey}-${hourStr}`) || document.getElementById(`slot-${dateKey}-08`);
+                        if (targetSlot) {
+                            const eDiv = document.createElement('div');
+                            eDiv.className = 'event-badge';
+                            // Clean display: title only (time is already on the left row label)
+                            eDiv.innerHTML = `<span>${evt.title}</span>`;
+                            
+                            if (evt.description) eDiv.title = evt.description;
+
+                            eDiv.addEventListener('click', (e) => {
+                                e.stopPropagation();
+                                selectedDateString = dateKey;
+                                editEventIndex = index;
+                                modalDateTitle.textContent = `Upravit aktivitu (${evt.title})`;
+                                eventTimeInput.value = evt.time || '08:00';
+                                eventTitleInput.value = evt.title || '';
+                                eventDescInput.value = evt.description || '';
+                                btnDelete.style.display = 'block';
+                                modal.style.display = 'flex';
+                                eventTitleInput.focus();
+                            });
+
+                            targetSlot.appendChild(eDiv);
+                        }
+                    });
+                }
+            }
+
+            btnPrevWeek.addEventListener('click', () => {
+                activeMonday.setDate(activeMonday.getDate() - 7);
+                renderWeek();
+            });
+
+            btnNextWeek.addEventListener('click', () => {
+                activeMonday.setDate(activeMonday.getDate() + 7);
+                renderWeek();
+            });
+
+            btnToday.addEventListener('click', () => {
+                activeMonday = getMonday(new Date());
+                renderWeek();
+            });
+
+            monthSelect.addEventListener('change', (e) => {
+                const year = parseInt(yearSelect.value);
+                const month = parseInt(e.target.value);
+                activeMonday = getMonday(new Date(year, month, 1));
+                renderWeek();
+            });
+
+            yearSelect.addEventListener('change', (e) => {
+                const year = parseInt(e.target.value);
+                const month = parseInt(monthSelect.value);
+                activeMonday = getMonday(new Date(year, month, 1));
+                renderWeek();
+            });
+
+            weekSelect.addEventListener('change', (e) => {
+                const targetWeekNum = parseInt(e.target.value);
+                const year = parseInt(yearSelect.value);
+                const month = parseInt(monthSelect.value);
+                
+                const firstDayOfMonth = new Date(year, month, 1);
+                let currMon = getMonday(firstDayOfMonth);
+                let weekCount = 1;
+
+                while (weekCount <= 6) {
+                    if (weekCount === targetWeekNum) {
+                        activeMonday = new Date(currMon);
+                        break;
+                    }
+                    currMon.setDate(currMon.getDate() + 7);
+                    weekCount++;
+                }
+                renderWeek();
+            });
+
+            btnCancel.addEventListener('click', () => {
+                modal.style.display = 'none';
+            });
+
+            btnDelete.addEventListener('click', () => {
+                if (selectedDateString && editEventIndex !== null && eventsData[selectedDateString]) {
+                    eventsData[selectedDateString].splice(editEventIndex, 1);
+                    if (eventsData[selectedDateString].length === 0) {
+                        delete eventsData[selectedDateString];
+                    }
+                    saveEvents();
+                    renderWeek();
+                }
+                modal.style.display = 'none';
+            });
+
+            btnSave.addEventListener('click', () => {
+                const titleText = eventTitleInput.value.trim();
+                if (titleText !== '') {
+                    if (!eventsData[selectedDateString]) {
+                        eventsData[selectedDateString] = [];
+                    }
+
+                    const newEvent = {
+                        time: eventTimeInput.value,
+                        title: titleText,
+                        description: eventDescInput.value.trim()
+                    };
+
+                    if (editEventIndex !== null) {
+                        eventsData[selectedDateString][editEventIndex] = newEvent;
+                    } else {
+                        eventsData[selectedDateString].push(newEvent);
+                    }
+
+                    eventsData[selectedDateString].sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+
+                    saveEvents();
+                    renderWeek();
+                }
+                modal.style.display = 'none';
+            });
+
+            window.addEventListener('click', (e) => {
+                if (e.target === modal) modal.style.display = 'none';
+            });
+
+            // Initialize app
+            populateSelects();
+            renderWeek();
+
+            // Auto-save notes on typing
+            notesTextarea.addEventListener('input', () => {
+                const weekNum = getISOWeek(activeMonday);
+                const currentYear = activeMonday.getFullYear();
+                const weekKey = `notes_${currentYear}_W${weekNum}`;
+                eventsData[weekKey] = notesTextarea.value;
+                saveEvents();
+            });
+
+            leftNotesTextarea.addEventListener('input', () => {
+                const weekNum = getISOWeek(activeMonday);
+                const currentYear = activeMonday.getFullYear();
+                const leftWeekKey = `left_notes_${currentYear}_W${weekNum}`;
+                eventsData[leftWeekKey] = leftNotesTextarea.value;
+                saveEvents();
+            });
+        });
+    </script>
+</body>
+</html>
